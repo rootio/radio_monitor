@@ -8,20 +8,27 @@ from cmd import Cmd
 from pydub import AudioSegment
 from pathlib import Path
 
-form_1 = pyaudio.paInt16 # 16-bit resolution
-chans = 1 # 1 channel
-samp_rate = 44100 # 44.1kHz sampling rate 
-chunk = 4096 # 2^12 samples for buffer
-record_secs = 10 #seconds to record | 3600 for an hour | 86400 for a day
-dev_index = 1 # device index found by p.get_device_info_by_index(i)
+if __name__ == '__main__':
+    form_1 = pyaudio.paInt16 # 16-bit resolution
+    chans = 1 # 1 channel
+    samp_rate = 44100 # 44.1kHz sampling rate 
+    chunk = 4096 # 2^12 samples for buffer
+    record_secs = 10 #seconds to record | 3600 for an hour | 86400 for a day
+    dev_index = None # device index found by p.get_device_info_by_index(i)
 
-class MyPrompt(Cmd):
-    prompt = '>'
-    
     def check_audio_inputs():
         p = pyaudio.PyAudio()
+        #inc=0
         for i in range(p.get_device_count()):
-            print(p.get_device_info_by_index(i).get('name'))
+            #inc += 1
+            print(p.get_device_info_by_index(i).get('name') + ' ------> %5s' % (i),)
+            
+        print("\n")
+    
+    """def check_audio_channel(dev_index): #Check for existing file saved with audio device index
+        text_file_path = str(Path().absolute()) + "/audioindex.txt"
+        if os.path.isfile(path):"""
+        
             
     def update_time(request):
         
@@ -79,7 +86,12 @@ class MyPrompt(Cmd):
                     continue
                 
             else: #day
-                return test_path + "/" + str(date_tuple[i]) + "/"
+                test_path= test_path + "/" + str(date_tuple[i]) + "/"
+                if not os.path.isdir(test_path):
+                    os.makedirs(test_path)
+                    return test_path
+                else:
+                    return test_path
                 
     def is_number(string):
         try:
@@ -149,13 +161,14 @@ class MyPrompt(Cmd):
                                     
         
         
-    def do_record(self,args):
+    def record():
         
         audio = pyaudio.PyAudio()
         
         time_string=update_time("name") #update to name the music recording to the present time
         
         folder_path = check_folders(update_time("date")) #compare the existing folders for the present date
+        print(folder_path)
         
         stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
                         input_device_index = dev_index,input = True, \
@@ -188,7 +201,7 @@ class MyPrompt(Cmd):
         print("\nRecording completed")
         
         convert(wav_output_filename,time_string,folder_path) #convert to mp3
-        
+
             
     def main():
         
@@ -200,16 +213,46 @@ class MyPrompt(Cmd):
             print("Recording a new file:")
             delete_old_folders()
             record()
+
+class MyPrompt(Cmd):
+    prompt = '>'
+    
+    def do_channels(self,args):
+        check_audio_inputs()
+        
+    def do_select(self,args):
+        if is_number(args) == True:
+            global dev_index
+            dev_index = int(args)
+            print("channel %s was selected \n" %args)
             
+        else:
+            print("%s is not an available channel" %args)
+    
+    def do_print(self,args):
+        print(args)
+        
+    def do_run(self,args):
+        if (dev_index==None):
+            print("No channel was selected")
+        else:
+            main()
+        
     def do_exit(self,args):
         print ("Closing...")
         raise SystemExit
     
-    if __name__ == '__main__':
-        print("Test")
-        #check_audio_inputs()
-        #main()
-    
+    if (dev_index==None):
+        print("""The audio device on which will be recorded the audio is undefined by default \n
+In order to choose a device check the available channels with [channels] \n
+Then select the channel by the index provided with [select [index]] \n \n""")
+        
+        print("The audio device number is listed on the right as (index number): \n")
+        
+        check_audio_inputs()
+        
+        print("Select the audio channel from the ones provided \n[help] for commands \n")
+        
+        
+
 MyPrompt().cmdloop()
-
-
