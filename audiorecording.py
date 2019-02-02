@@ -4,23 +4,33 @@ import time
 import os
 import calendar
 import shutil
+import pickle
 from cmd import Cmd
 from pydub import AudioSegment
 from pathlib import Path
 
+
 if __name__ == '__main__':
+    
     form_1 = pyaudio.paInt16 # 16-bit resolution
     chans = 1 # 1 channel
     samp_rate = 44100 # 44.1kHz sampling rate 
     chunk = 4096 # 2^12 samples for buffer
     record_secs = 10 #seconds to record | 3600 for an hour | 86400 for a day
     dev_index = None # device index found by p.get_device_info_by_index(i)
+    file_format = 0 #recording format of recordings
+    prefs='prefs.pkl'
 
+    if os.path.isfile(str(Path().absolute()) + "/" + prefs):
+      
+        with open(prefs, 'rb') as f:
+            record_secs,dev_index,file_format = pickle.load(f)
+
+            
+            
     def check_audio_inputs():
         p = pyaudio.PyAudio()
-        #inc=0
         for i in range(p.get_device_count()):
-            #inc += 1
             print(p.get_device_info_by_index(i).get('name') + ' ------> %5s' % (i),)
             
         print("\n")
@@ -41,9 +51,13 @@ if __name__ == '__main__':
         
         #used for the creation of recorded files
         
-        elif request == "name": 
-            time_name_string = time.strftime("%Y%m%d%H%M%S", date_tuple)
-            return time_name_string
+        elif request == "name":
+            if file_format != 0:
+                time_name_string = time.strftime("%Y-%m-%d %H.%M.%S", date_tuple)
+                return time_name_string
+            else:
+                time_name_string = time.strftime("%Y%m%d%H%M%S", date_tuple)
+                return time_name_string
         
         else:
             raise ValueError("Time update requested isn't corretly specified [name,date]")
@@ -68,6 +82,7 @@ if __name__ == '__main__':
         for i in range(3):
             
             if i==0: #year
+            
                 test_path = test_path + "/" + str(date_tuple[i])
                 
                 if not os.path.isdir(test_path):
@@ -76,7 +91,7 @@ if __name__ == '__main__':
                 else:
                     continue
             
-            elif i==1: #month
+            elif i==1 and file_format != 0: #month
             
                 test_path = test_path + "/" + calendar.month_name[date_tuple[i]]
                 
@@ -86,12 +101,15 @@ if __name__ == '__main__':
                     continue
                 
             else: #day
-                test_path= test_path + "/" + str(date_tuple[i]) + "/"
-                if not os.path.isdir(test_path):
-                    os.makedirs(test_path)
-                    return test_path
+                if file_format != 0:
+                    test_path= test_path + "/" + str(date_tuple[i]) + "/"
+                    if not os.path.isdir(test_path):
+                        os.makedirs(test_path)
+                        return test_path
+                    else:
+                        return test_path
                 else:
-                    return test_path
+                    return test_path + "/"
                 
     def is_number(string):
         try:
@@ -100,12 +118,15 @@ if __name__ == '__main__':
         
         except ValueError:
             return False            
-
+    
+    def save_files(content):
+        with open(prefs, 'wb') as f:
+            pickle.dump(content, f)
+    
     def delete_old_folders():
         date_tuple = update_time("date") #year/month/day
         my_path = str(Path().absolute()) #current path
         test_path = my_path
-        
         
         for i in range(3):
             
@@ -220,17 +241,63 @@ class MyPrompt(Cmd):
     def do_channels(self,args):
         check_audio_inputs()
         
-    def do_select(self,args):
+    def do_duration(self,args):
+        if is_number(args) == True:
+            global record_secs
+            record_secs = int(args)
+            time = record_secs/60
+            print("Recording duration set for %s minutes" %str(round(time,2)))
+    
+    def do_save(self,args):
+        data = [record_secs,dev_index,file_format]
+        if args == "help":
+            print("Options: \n") 
+            for x in t:
+                print(x)
+        elif args == '':
+            save_files(data)
+        else:
+            print("The option to save %s is not available \nUse [save help] to check available options \n" %args)
+                
+            
+    def do_channel(self,args):
         if is_number(args) == True:
             global dev_index
             dev_index = int(args)
-            print("channel %s was selected \n" %args)
+            print("Channel %s was selected \n" %args)
             
         else:
             print("%s is not an available channel" %args)
     
+    def do_format(self,args):
+        help = "[0] for flat storage and [1] for a tree storage \n"
+        if args=="help":
+            print(help)
+            
+        elif is_number(args) == True:
+            global file_format
+        
+            if args == '1':
+                print("The file format in tree storage was selected (%s) \n" %args)
+                args = int(args)
+                file_format = args
+                
+            elif args == '0':
+                print("The file format in flat storage was selected (%s) \n" %args)
+                args = int(args)
+                file_format = args
+                
+            else:
+                print("This format is not available ")
+                print(help)
+            
+        else:
+            print("%s is not an available file storage option" %args)
+            print(help)
+        
+    
     def do_print(self,args):
-        print(args)
+        print(record_secs, dev_index, file_format)
         
     def do_run(self,args):
         if (dev_index==None):
