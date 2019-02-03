@@ -25,19 +25,12 @@ if __name__ == '__main__':
       
         with open(prefs, 'rb') as f:
             record_secs,dev_index,file_format = pickle.load(f)
-
             
             
     def check_audio_inputs():
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
             print(p.get_device_info_by_index(i).get('name') + ' ------> %5s' % (i),)
-            
-        print("\n")
-    
-    """def check_audio_channel(dev_index): #Check for existing file saved with audio device index
-        text_file_path = str(Path().absolute()) + "/audioindex.txt"
-        if os.path.isfile(path):"""
         
             
     def update_time(request):
@@ -140,10 +133,10 @@ if __name__ == '__main__':
                             if int(folders) < date_tuple[i]:
                                 if int(folders) != (date_tuple[i])-1: 
                                     shutil.rmtree (folder_path)
+                                    
                                 else:
                                     #check the old folders and files | remove continue in next update
-                                    continue
-                                    
+                                    continue 
                             else:
                                 continue
                         else:
@@ -239,35 +232,66 @@ class MyPrompt(Cmd):
     prompt = '>'
     
     def do_channels(self,args):
-        check_audio_inputs()
+        if args == '':
+            check_audio_inputs()
+            print("\n")
+        else:
+            print("This command has no extra options \n")
         
     def do_duration(self,args):
-        if is_number(args) == True:
+        if args == "help":
+            print("Set the time for the recording lenght in seconds \n")
+            
+        elif is_number(args) == True:
             global record_secs
             record_secs = int(args)
-            time = record_secs/60
-            print("Recording duration set for %s minutes" %str(round(time,2)))
+            time = record_secs
+            
+            if time <= 60:
+                print("Recording duration set for %s sec \n" %time)
+            
+            else:
+                secs = time % 10 
+                time = record_secs/60
+                if time <= 60:
+                    print("Recording duration set for {} min and {} sec \n" .format(round(time),round(secs)))
+                else:
+                    time = time / 60
+                    mins = (time %1) *60
+                    print("Recording duration set for {} h and {} mins \n" .format(round(time),round(mins)))
+            
+        else:
+            if args != '':
+                print("Option not available")
+            else:
+                print("No duration was selected \nUse [duration help] for assistance \n")
     
     def do_save(self,args):
         data = [record_secs,dev_index,file_format]
         if args == "help":
-            print("Options: \n") 
-            for x in t:
-                print(x)
+            print("Simply [save] to save your prefereces \nThese include: Record duration, channel selected and your file saving preference \n") 
+            
         elif args == '':
             save_files(data)
+            print("Preferences saved \nDuration:{} Channel:{} Format:{} \n".format(record_secs,dev_index,file_format))
+            
         else:
             print("The option to save %s is not available \nUse [save help] to check available options \n" %args)
                 
             
     def do_channel(self,args):
+        if args == "help":
+            print("Select a channel from the available [channels] listed \n")
         if is_number(args) == True:
             global dev_index
             dev_index = int(args)
             print("Channel %s was selected \n" %args)
             
         else:
-            print("%s is not an available channel" %args)
+            if args != '':
+                print("%s is not an available channel \n" %args)
+            else:
+                print("No channel was selected \n")
     
     def do_format(self,args):
         help = "[0] for flat storage and [1] for a tree storage \n"
