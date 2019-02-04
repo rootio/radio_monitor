@@ -21,10 +21,20 @@ if __name__ == '__main__':
     file_format = 0 #recording format of recordings
     prefs='prefs.pkl'
 
-    if os.path.isfile(str(Path().absolute()) + "/" + prefs):
+    if os.path.isfile(str(Path().absolute()) + "/" + prefs): #Load configurations saved
       
         with open(prefs, 'rb') as f:
             record_secs,dev_index,file_format = pickle.load(f)
+            
+    else: #automatically choose the first audio input available
+        p = pyaudio.PyAudio()
+        for i in range(p.get_device_count()):
+            if (p.get_device_info_by_host_api_device_index(0,i).get('maxInputChannels') > 0):
+                dev_index = i
+                print ("Recording device index: %s was automatically selected:" %i, p.get_device_info_by_host_api_device_index(0,i).get('name'),"\n")
+                break
+            else:
+                dev_index = None
             
             
     def check_audio_inputs():
@@ -184,9 +194,12 @@ if __name__ == '__main__':
         folder_path = check_folders(update_time("date")) #compare the existing folders for the present date
         print(folder_path)
         
-        stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
-                        input_device_index = dev_index,input = True, \
-                        frames_per_buffer=chunk)
+        try:
+            stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
+                            input_device_index = dev_index,input = True, \
+                            frames_per_buffer=chunk)
+        except OSError:
+            return False
         
         wav_output_filename = folder_path + time_string + ".wav"  # name of .wav file
         print(time_string)
@@ -227,6 +240,7 @@ if __name__ == '__main__':
             print("Recording a new file:")
             delete_old_folders()
             record()
+            
 
 class MyPrompt(Cmd):
     prompt = '>'
@@ -273,7 +287,7 @@ class MyPrompt(Cmd):
             
         elif args == '':
             save_files(data)
-            print("Preferences saved \nDuration:{} Channel:{} Format:{} \n".format(record_secs,dev_index,file_format))
+            print("Preferences saved \nDuration (s):{} Channel:{} Format:{} \n".format(record_secs,dev_index,file_format))
             
         else:
             print("The option to save %s is not available \nUse [save help] to check available options \n" %args)
@@ -282,7 +296,8 @@ class MyPrompt(Cmd):
     def do_channel(self,args):
         if args == "help":
             print("Select a channel from the available [channels] listed \n")
-        if is_number(args) == True:
+            
+        elif is_number(args) == True:
             global dev_index
             dev_index = int(args)
             print("Channel %s was selected \n" %args)
@@ -293,7 +308,7 @@ class MyPrompt(Cmd):
             else:
                 print("No channel was selected \n")
     
-    def do_format(self,args):
+    def do_storage(self,args):
         help = "[0] for flat storage and [1] for a tree storage \n"
         if args=="help":
             print(help)
@@ -320,8 +335,8 @@ class MyPrompt(Cmd):
             print(help)
         
     
-    def do_print(self,args):
-        print(record_secs, dev_index, file_format)
+    def do_info(self,args):
+        print("Duration (s): {}\nChannel: {}\nStorage: {}\n".format(record_secs, dev_index, file_format))
         
     def do_run(self,args):
         if (dev_index==None):
@@ -332,18 +347,15 @@ class MyPrompt(Cmd):
     def do_exit(self,args):
         print ("Closing...")
         raise SystemExit
+        
+            
+    if dev_index == None:
+        
+        print("There is no recording device being recognized! \nThe audio device number is listed on the right as (index number): \n")
     
-    if (dev_index==None):
-        print("""The audio device on which will be recorded the audio is undefined by default \n
-In order to choose a device check the available channels with [channels] \n
-Then select the channel by the index provided with [select [index]] \n \n""")
-        
-        print("The audio device number is listed on the right as (index number): \n")
-        
         check_audio_inputs()
-        
-        print("Select the audio channel from the ones provided \n[help] for commands \n")
-        
-        
-
+    
+        print("\nSelect the audio channel manual from the ones provided \n[help] for commands \n")
+                
+    
 MyPrompt().cmdloop()
