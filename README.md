@@ -46,5 +46,5 @@ Simply run audiorecording.py to use it after
 #Each command displayed has a help option included if necessary e.g > duration help
 ```
 
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
+## Project 
+[RootIO](http://rootio.org/)
