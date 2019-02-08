@@ -9,6 +9,8 @@ from cmd import Cmd
 from pydub import AudioSegment
 from pathlib import Path
 
+import timerequest
+
 
 if __name__ == '__main__':
     
@@ -16,12 +18,24 @@ if __name__ == '__main__':
     chans = 1 # 1 channel
     samp_rate = 44100 # 44.1kHz sampling rate 
     chunk = 4096 # 2^12 samples for buffer
-    record_secs = 10 #seconds to record | 3600 for an hour | 86400 for a day
+    record_secs = 3600 #seconds to record | 3600 for an hour | 86400 for a day
     dev_index = None # device index found by p.get_device_info_by_index(i)
     file_format = 0 #recording format of recordings
     prefs='prefs.pkl'
+    
+    if (timerequest.is_connected()==False):
+        for i in range(3):
+            connectivity = timerequest.is_connected()
+            if (connectivity==False):
+                print("Checking internet connectivity...")
+                time.sleep(5)
+            else:
+                print("Connection established")
+                timerequest.update()
+                print("Time updated")
+        
 
-    if os.path.isfile(str(Path().absolute()) + "/" + prefs): #Load configurations saved
+    elif (os.path.isfile(str(Path().absolute()) + "/" + prefs)): #Load configurations saved
       
         with open(prefs, 'rb') as f:
             record_secs,dev_index,file_format = pickle.load(f)
@@ -31,7 +45,8 @@ if __name__ == '__main__':
         for i in range(p.get_device_count()):
             if (p.get_device_info_by_host_api_device_index(0,i).get('maxInputChannels') > 0):
                 dev_index = i
-                print ("Recording device index: %s was automatically selected:" %i, p.get_device_info_by_host_api_device_index(0,i).get('name'),"\n")
+                print("\n")
+                print ("Recording device index: {} was automatically selected:{}".format(i, p.get_device_info_by_host_api_device_index(0,i).get('name') + "\n"))
                 break
             else:
                 dev_index = None
