@@ -4,6 +4,7 @@ import time
 import os
 import calendar
 import shutil
+import sys
 import pickle
 from cmd import Cmd
 from pydub import AudioSegment
@@ -11,14 +12,13 @@ from pathlib import Path
 
 import timerequest
 
-
 if __name__ == '__main__':
     
     form_1 = pyaudio.paInt16 # 16-bit resolution
     chans = 1 # 1 channel
     samp_rate = 44100 # 44.1kHz sampling rate 
     chunk = 4096 # 2^12 samples for buffer
-    record_secs = 3600 #seconds to record | 3600 for an hour | 86400 for a day
+    record_secs = 10 #seconds to record | 3600 for an hour | 86400 for a day
     dev_index = None # device index found by p.get_device_info_by_index(i)
     file_format = 0 #recording format of recordings
     prefs='prefs.pkl'
@@ -30,11 +30,8 @@ if __name__ == '__main__':
                 print("Checking internet connectivity...")
                 time.sleep(5)
             else:
-                print("Connection established")
-                timerequest.update()
-                print("Time updated")
-        
-
+                print("Connection established \n")
+    
     elif (os.path.isfile(str(Path().absolute()) + "/" + prefs)): #Load configurations saved
       
         with open(prefs, 'rb') as f:
@@ -43,13 +40,18 @@ if __name__ == '__main__':
     else: #automatically choose the first audio input available
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
-            if (p.get_device_info_by_host_api_device_index(0,i).get('maxInputChannels') > 0):
-                dev_index = i
-                print("\n")
-                print ("Recording device index: {} was automatically selected:{}".format(i, p.get_device_info_by_host_api_device_index(0,i).get('name') + "\n"))
-                break
-            else:
-                dev_index = None
+            try:
+                if (p.get_device_info_by_host_api_device_index(0,i).get('maxInputChannels') > 0):
+                    dev_index = i
+                    print("\n")
+                    print ("Recording device index: {} was automatically selected:{}".format(i, p.get_device_info_by_host_api_device_index(0,i).get('name') + "\n"))
+                    break
+                else:
+                    dev_index = None
+                
+            except Exception:
+                print("\n Stopped recording")
+                pass
             
             
     def check_audio_inputs():
@@ -197,8 +199,6 @@ if __name__ == '__main__':
                                         continue
                         else:
                             continue
-                                    
-        
         
     def record():
         
@@ -243,7 +243,7 @@ if __name__ == '__main__':
         print("\nRecording completed")
         
         convert(wav_output_filename,time_string,folder_path) #convert to mp3
-
+            
             
     def main():
         
@@ -255,6 +255,13 @@ if __name__ == '__main__':
             print("Recording a new file:")
             delete_old_folders()
             record()
+    
+    try:
+        if sys.argv[1] == 'run':
+            print('\nManual running script')
+            record()
+    except IndexError:
+        print("\nAuto running")
             
 
 class MyPrompt(Cmd):
@@ -263,7 +270,7 @@ class MyPrompt(Cmd):
     def do_channels(self,args):
         if args == '':
             check_audio_inputs()
-            print("\n")
+            print('\n')
         else:
             print("This command has no extra options \n")
         
@@ -366,7 +373,7 @@ class MyPrompt(Cmd):
             
     if dev_index == None:
         
-        print("There is no recording device being recognized! \nThe audio device number is listed on the right as (index number): \n")
+        print("\nThere is no recording device being recognized! \nThe audio device number is listed on the right as (index number): \n")
     
         check_audio_inputs()
     

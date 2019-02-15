@@ -3,20 +3,21 @@ A simple embedded computer FM radio listener / analyzer to allow recording and a
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/)
-
 ```bash
-pip install pyaudio
-pip install pydub
-pip install python-crontab
-*Other modules might be necessary
+Run bootup.py if you are using this for the first time or in a fresh OS!
+
+#Manually install requirements if needed:
+Use the package manager [pip](https://pip.pypa.io/en/stable/)
+pip install -r requirements.txt
 ```
 
 ## Startup
-Make sure you run bootup.py before starting using the script
-This is to ensure the time is tracked in case the system's date is outdated
 
-Simply run audiorecording.py to use it after
+Simply run audiorecording.py to use 
+
+To bypass the menu add run when calling the script:
+>python3 audiorecording.py run
+
 
 ## Usage
 

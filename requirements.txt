@@ -1,0 +1,10 @@
+cronos==0.0.4
+numpy==1.16.1
+pathlib==1.0.1
+pickle-mixin==1.0.2
+PyAudio==0.2.11
+pydub==0.23.1
+pyserial==3.4
+PySocks==1.6.8
+python-crontab==2.3.6
+

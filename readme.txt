@@ -1,19 +1,17 @@
 
 ## Installation
 
-Use the package manager [pip](https://pip.pypa.io/en/stable/)
+Run bootup.py if you are using this for the first time or in a fresh OS!
 
-pip install pyaudio
-pip install pydub
-pip install python-crontab
-*Other modules might be necessary
+#Manually install requirements if needed:
+pip install -r requirements.txt
 
 
 ## Startup
-Make sure you run bootup.py before starting using the script
-This is to ensure the time is tracked in case the system's date is outdated
+Make sure you run bootup.py once before starting using the script for the first time!
+This is to ensure the time is tracked and it starts recording after reboot or in case the system's date is outdated.
 
-Simply run audiorecording.py to use it after
+Simply run audiorecording.py to use it after or audiorecording.py run to start recording straight away.
 
 ## Usage
 
