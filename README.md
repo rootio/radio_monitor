@@ -3,12 +3,13 @@ A simple embedded computer FM radio listener / analyzer to allow recording and a
 
 ## Installation
 
+Use the package manager [pip](https://pip.pypa.io/en/stable/)
+
 ```bash
 Run bootup.py if you are using this for the first time or in a fresh OS!
 
 #Manually install requirements if needed:
-Use the package manager [pip](https://pip.pypa.io/en/stable/)
-pip install -r requirements.txt
+>pip install -r requirements.txt
 ```
 
 ## Startup
