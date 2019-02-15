@@ -12,7 +12,7 @@ path = str(Path().absolute()) + "/audiorecording.py"
 #cron.remove(job)
 
 with open("startup.sh",'w') as f:
-    f.write("#!/bin/bash \ncd ~\nscreen -d -m python3 {} run".format(path))
+    f.write("#!/bin/bash \ncd ~\nscreen -S goldenrecord -d -m python3 {} run".format(path))
     
 cron = CronTab(user='pi')
 cron.remove_all()

@@ -18,7 +18,7 @@ if __name__ == '__main__':
     chans = 1 # 1 channel
     samp_rate = 44100 # 44.1kHz sampling rate 
     chunk = 4096 # 2^12 samples for buffer
-    record_secs = 10 #seconds to record | 3600 for an hour | 86400 for a day
+    record_secs = 3600 #seconds to record | 3600 for an hour | 86400 for a day
     dev_index = None # device index found by p.get_device_info_by_index(i)
     file_format = 0 #recording format of recordings
     prefs='prefs.pkl'
