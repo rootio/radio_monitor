@@ -5,14 +5,14 @@ import os
 import calendar
 import shutil
 import sys
-import pickle
 from cmd import Cmd
 from pydub import AudioSegment
 from pathlib import Path
+from configparser import SafeConfigParser
 
 import timerequest
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     
     form_1 = pyaudio.paInt16 # 16-bit resolution
     chans = 1 # 1 channel
@@ -20,8 +20,12 @@ if __name__ == '__main__':
     chunk = 4096 # 2^12 samples for buffer
     record_secs = 3600 #seconds to record | 3600 for an hour | 86400 for a day
     dev_index = None # device index found by p.get_device_info_by_index(i)
-    file_format = 0 #recording format of recordings
-    prefs='prefs.pkl'
+    file_format = 0 #recording format of audio
+    config = SafeConfigParser()
+    data_file = "config.ini"
+    data_title = "options"
+    data_names = ("recording seconds","device id","file format")
+    
     
     if (timerequest.is_connected()==False):
         for i in range(3):
@@ -32,32 +36,37 @@ if __name__ == '__main__':
             else:
                 print("Connection established \n")
     
-    elif (os.path.isfile(str(Path().absolute()) + "/" + prefs)): #Load configurations saved
-      
-        with open(prefs, 'rb') as f:
-            record_secs,dev_index,file_format = pickle.load(f)
+    
+    elif (os.path.isfile(str(Path().absolute()) + "/" + data_file)): #Load configurations saved
+        data_list = []
+        with open(data_file, "r") as f:
+            config.read(data_file)
+            for x in range(len(data_names)):
+                data_list.append(int(config.get(data_title,data_names[x])))
+                
+            record_secs, dev_index, file_format = data_list #Add new vars
             
     else: #automatically choose the first audio input available
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
             try:
-                if (p.get_device_info_by_host_api_device_index(0,i).get('maxInputChannels') > 0):
+                if (p.get_device_info_by_host_api_device_index(0,i).get("maxInputChannels") > 0):
                     dev_index = i
                     print("\n")
-                    print ("Recording device index: {} was automatically selected:{}".format(i, p.get_device_info_by_host_api_device_index(0,i).get('name') + "\n"))
+                    print ("Recording device index: {} was automatically selected:{}".format(i, p.get_device_info_by_host_api_device_index(0,i).get("name") + "\n"))
                     break
                 else:
                     dev_index = None
                 
             except Exception:
-                print("\n Stopped recording")
+                print("\n Exception in channel")
                 pass
             
             
     def check_audio_inputs():
         p = pyaudio.PyAudio()
         for i in range(p.get_device_count()):
-            print(p.get_device_info_by_index(i).get('name') + ' ------> %5s' % (i),)
+            print(p.get_device_info_by_index(i).get("name") + " ------> %5s" % (i),)
         
             
     def update_time(request):
@@ -137,11 +146,23 @@ if __name__ == '__main__':
             return True
         
         except ValueError:
-            return False            
-    
+            return False
+        
+        
     def save_files(content):
-        with open(prefs, 'wb') as f:
-            pickle.dump(content, f)
+        config.read(data_file)
+        try:
+            config.add_section(data_title)
+        except:
+            pass
+            
+        for x in range(len(content)):
+            config.set(data_title, data_names[x], str(content[x]))
+        
+        with open(data_file,"w") as f:
+            
+            config.write(f)
+            
     
     def delete_old_folders():
         date_tuple = update_time("date") #year/month/day
@@ -233,11 +254,11 @@ if __name__ == '__main__':
         audio.terminate()
 
         #save the audio in .wav files
-        wavefile = wave.open(wav_output_filename,'wb')
+        wavefile = wave.open(wav_output_filename,"wb")
         wavefile.setnchannels(chans)
         wavefile.setsampwidth(audio.get_sample_size(form_1))
         wavefile.setframerate(samp_rate)
-        wavefile.writeframes(b''.join(frames))
+        wavefile.writeframes(b"".join(frames))
         wavefile.close()
         
         print("\nRecording completed")
@@ -257,20 +278,20 @@ if __name__ == '__main__':
             record()
     
     try:
-        if sys.argv[1] == 'run':
-            print('\nManual running script')
+        if sys.argv[1] == "run":
+            print("\nAuto running script \n")
             record()
     except IndexError:
-        print("\nAuto running")
+        print("\nManual running \n")
             
 
 class MyPrompt(Cmd):
-    prompt = '>'
+    prompt = ">"
     
     def do_channels(self,args):
-        if args == '':
+        if args == "":
             check_audio_inputs()
-            print('\n')
+            print("\n")
         else:
             print("This command has no extra options \n")
         
@@ -297,19 +318,22 @@ class MyPrompt(Cmd):
                     print("Recording duration set for {} h and {} mins \n" .format(round(time),round(mins)))
             
         else:
-            if args != '':
+            if args != "":
                 print("Option not available")
             else:
                 print("No duration was selected \nUse [duration help] for assistance \n")
     
     def do_save(self,args):
-        data = [record_secs,dev_index,file_format]
-        if args == "help":
+        
+        if dev_index == None:
+            print("Please select an audio channel from [channels]\n")
+
+        elif args == "help":
             print("Simply [save] to save your prefereces \nThese include: Record duration, channel selected and your file saving preference \n") 
             
-        elif args == '':
-            save_files(data)
-            print("Preferences saved \nDuration (s):{} Channel:{} Format:{} \n".format(record_secs,dev_index,file_format))
+        elif args == "":
+            save_files((record_secs, dev_index, file_format))
+            print("Preferences saved \nDuration(s):{} Channel:{} Format:{} \n".format(record_secs,dev_index,file_format))
             
         else:
             print("The option to save %s is not available \nUse [save help] to check available options \n" %args)
@@ -325,7 +349,7 @@ class MyPrompt(Cmd):
             print("Channel %s was selected \n" %args)
             
         else:
-            if args != '':
+            if args != "":
                 print("%s is not an available channel \n" %args)
             else:
                 print("No channel was selected \n")
@@ -338,12 +362,12 @@ class MyPrompt(Cmd):
         elif is_number(args) == True:
             global file_format
         
-            if args == '1':
+            if args == "1":
                 print("The file format in tree storage was selected (%s) \n" %args)
                 args = int(args)
                 file_format = args
                 
-            elif args == '0':
+            elif args == "0":
                 print("The file format in flat storage was selected (%s) \n" %args)
                 args = int(args)
                 file_format = args
@@ -358,7 +382,7 @@ class MyPrompt(Cmd):
         
     
     def do_info(self,args):
-        print("Duration (s): {}\nChannel: {}\nStorage: {}\n".format(record_secs, dev_index, file_format))
+        print("Duration(s): {}\nChannel: {}\nStorage: {}\n".format(record_secs, dev_index, file_format))
         
     def do_run(self,args):
         if (dev_index==None):

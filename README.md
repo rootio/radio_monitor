@@ -9,7 +9,7 @@ Use the package manager [pip](https://pip.pypa.io/en/stable/)
 Run bootup.py if you are using this for the first time or in a fresh OS!
 
 #Manually install requirements if needed:
->pip install -r requirements.txt
+>pip3 install -r requirements.txt
 ```
 
 ## Startup

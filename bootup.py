@@ -2,14 +2,14 @@ import os
 from crontab import CronTab
 from pathlib import Path
 
-#@reboot sleep 20 && python /home/pi/audiorecording.py
-
-reqpath = str(Path().absolute()) +"/requirements.txt"
+reqpath = str(Path().absolute()) + "/requirements.txt"
 shpath = str(Path().absolute()) + "/startup.sh"
 path = str(Path().absolute()) + "/audiorecording.py"
 
-#cron.remove_all(comment='my comment')
-#cron.remove(job)
+os.system("sudo apt-get install python3-pyaudio")
+os.system("sudo apt-get install python3-crontab")
+os.system("sudo apt-get install screen")
+os.system("pip3 install -r {}".format(reqpath))
 
 with open("startup.sh",'w') as f:
     f.write("#!/bin/bash \ncd ~\nscreen -S goldenrecord -d -m python3 {} run".format(path))
@@ -26,4 +26,4 @@ cron.write()
 job.enable()
 
 os.system("chmod +x {}".format(shpath))
-os.system("pip install -r {}".format(reqpath))
+os.system("sudo sh startup.sh")
