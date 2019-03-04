@@ -169,57 +169,70 @@ if __name__ == "__main__":
         my_path = str(Path().absolute()) #current path
         test_path = my_path
         
-        for i in range(3):
-            
-            if i==0: #eliminates old year folders
-                dirs = os.listdir(my_path)
-                test_path = test_path + "/" + str(date_tuple[i])
-                for folders in dirs:
-                    folder_path = os.path.abspath(folders)
-                    if os.path.isdir(folder_path):
-                        if is_number(folders) == True:
-                            if int(folders) < date_tuple[i]:
-                                if int(folders) != (date_tuple[i])-1: 
-                                    shutil.rmtree (folder_path)
-                                    
+        if file_format !=0:
+        
+            for i in range(2):
+                
+                if i==0: #eliminates old year folders
+                    dirs = os.listdir(my_path)
+                    test_path = test_path + "/" + str(date_tuple[i])
+                    for folders in dirs:
+                        folder_path = os.path.abspath(folders)
+                        if os.path.isdir(folder_path):
+                            if is_number(folders) == True:
+                                if int(folders) < date_tuple[i]:
+                                    if int(folders) != (date_tuple[i])-1: #check if it's last year
+                                        shutil.rmtree (folder_path)
+                                        
+                                    else: #It's the last year so check January
+                                        #check the old folders and files in it| this is missing
+                                        continue 
                                 else:
-                                    #check the old folders and files | remove continue in next update
-                                    continue 
+                                    continue
                             else:
                                 continue
                         else:
                             continue
+                        
+                elif i==1: #checks for old folders and eliminates old files
+                    current_month =  calendar.month_name[date_tuple[i]]
+                    
+                    if current_month == calendar.month_name[1]: #January
+                        break
+                    
+                    else:
+                        
+                        months_dir = os.listdir(test_path) #Inside year folder
+                        for months in months_dir:                                  
+                            now = time.time()
+                            folder_path = os.path.abspath(months)
+                            #fullpath = os.path.join(dirs, folders)
+                            
+                            if os.path.isdir(folder_path): #check if its a directory
+                                
+                                if os.stat(folder_path).st_mtime < (now - (30 * 86400)): # if older than 30 days since last modified
+                                    shutil.rmtree(folder_path)
+                                    
+                                else: #opens that month directory
+                                    days = os.listdir(folder_path)
+                                    for day in days: #delete
+                                        if os.stat(folder_path).st_mtime < (now - (30 * 86400)):
+                                            shutil.rmtree(folder_path)
+                                        else:
+                                            continue
+                            else:
+                                continue
+        else:
+            test_path = test_path + "/" + str(date_tuple[0])
+            if os.path.isdir(test_path):
+                files = [f for f in os.listdir(test_path) if os.path.isfile(f)]
+                for f in files:
+                    folder_path = os.path.abspath(f)
+                    if os.stat(folder_path).st_mtime < (now - (30 * 86400)):
+                        os.remove(folder_path)
                     else:
                         continue
-                    
-            elif i==1: #checks for old folders and eliminates old files
-                current_month =  calendar.month_name[date_tuple[i]]
                 
-                if current_month == calendar.month_name[1]: #January
-                    break
-                
-                else:
-                    
-                    months_dir = os.listdir(test_path)
-                    for months in months_dir:                                  
-                        now = time.time()
-                        folder_path = os.path.abspath(months)
-                        #fullpath = os.path.join(dirs, folders)
-                        
-                        if os.path.isdir(folder_path): #check if its a folder 
-                            
-                            if os.stat(folder_path).st_mtime < (now - (30 * 86400)): # if older than 30 days since last modified
-                                os.remove(folder_path)
-                                
-                            else: #opens the folder
-                                days = os.listdir(folder_path)
-                                for day in days:
-                                    if os.stat(folder_path).st_mtime < (now - (30 * 86400)):
-                                        os.remove(folder_path)
-                                    else:
-                                        continue
-                        else:
-                            continue
         
     def record():
         
