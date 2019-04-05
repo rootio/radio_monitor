@@ -110,6 +110,8 @@ if __name__ == "__main__":
         
         for i in range(3):
             
+            
+
             if i==0: #year
             
                 test_path = test_path + "/" + str(date_tuple[i])
@@ -120,16 +122,19 @@ if __name__ == "__main__":
                 else:
                     continue
             
-            elif i==1 and file_format != 0: #month
+            elif i==1: #month
+                
+                if file_format != 0: #tree storage
             
-                test_path = test_path + "/" + calendar.month_name[date_tuple[i]]
+                    test_path = test_path + "/" + calendar.month_name[date_tuple[i]]
+                    
+                    if not os.path.isdir(test_path):
+                        os.makedirs(test_path) 
+                    else:
+                        continue
                 
-                if not os.path.isdir(test_path):
-                    os.makedirs(test_path) 
-                else:
-                    continue
+            elif i==2: #day
                 
-            else: #day
                 if file_format != 0:
                     test_path= test_path + "/" + str(date_tuple[i]) + "/"
                     if not os.path.isdir(test_path):
@@ -139,7 +144,7 @@ if __name__ == "__main__":
                         return test_path
                 else:
                     return test_path + "/"
-                
+                                
     def is_number(string):
         try:
             int(string)
@@ -168,7 +173,7 @@ if __name__ == "__main__":
         date_tuple = update_time("date") #year/month/day
         my_path = str(Path().absolute()) #current path
         test_path = my_path
-        
+
         if file_format !=0:
         
             for i in range(2):
@@ -241,7 +246,6 @@ if __name__ == "__main__":
         time_string=update_time("name") #update to name the music recording to the present time
         
         folder_path = check_folders(update_time("date")) #compare the existing folders for the present date
-        print(folder_path)
         
         try:
             stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
@@ -251,7 +255,6 @@ if __name__ == "__main__":
             return False
         
         wav_output_filename = folder_path + time_string + ".wav"  # name of .wav file
-        print(time_string)
         
         frames = []
 
@@ -341,7 +344,7 @@ class MyPrompt(Cmd):
         if dev_index == None:
             print("Please select an audio channel from [channels]\n")
 
-        elif args == "help":
+        elif args == "help" or args =="-h" or args == "--help":
             print("Simply [save] to save your prefereces \nThese include: Record duration, channel selected and your file saving preference \n") 
             
         elif args == "":
@@ -395,7 +398,12 @@ class MyPrompt(Cmd):
         
     
     def do_info(self,args):
-        print("Duration(s): {}\nChannel: {}\nStorage: {}\n".format(record_secs, dev_index, file_format))
+        print("Duration(s): {}\nChannel: {}\nStorage: {} \n".format(record_secs, dev_index, file_format))
+        
+        if (file_format == 0):
+            print("Flat storare selected \n")
+        else:
+            print("Tree storage selected \n")
         
     def do_run(self,args):
         if (dev_index==None):

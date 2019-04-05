@@ -1,0 +1,18 @@
+<ezstream>
+   <url>http://icecast2.miti.space:8000/rootio</url>
+   <sourcepassword>rootio</sourcepassword>
+   <format>MP3</format>
+   <filename>stdin</filename>
+   <stream_once>1</stream_once>
+  
+   <svrinfoname>RootIO Radio</svrinfoname>
+   <svrinfourl>http://icecast2.miti.space/rootio</svrinfourl> 
+   <svrinfogenre>Community Radio</svrinfogenre>
+   <svrinfodescription>Stream from Bere Island</svrinfodescription>
+  
+   <svrinfobitrate>128</svrinfobitrate>
+   <svrinfochannels>2</svrinfochannels>
+   <svrinfosamplerate>44100</svrinfosamplerate>
+   <svrinfopublic>1</svrinfopublic>
+</ezstream>
+
