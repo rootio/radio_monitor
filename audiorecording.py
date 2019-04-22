@@ -101,7 +101,7 @@ if __name__ == "__main__":
         AudioSegment.from_wav(wav_output_filename).export(mp3_output_filename, format="mp3")
         
         os.remove(wav_output_filename)
-        
+        print("Saved file path: " + mp3_output_filename)
         print("Finished recording \n")
         
         
@@ -173,7 +173,6 @@ if __name__ == "__main__":
         date_tuple = update_time("date") #year/month/day
         my_path = str(Path().absolute()) #current path
         test_path = my_path
-
         if file_format !=0:
         
             for i in range(2):
@@ -246,6 +245,7 @@ if __name__ == "__main__":
         time_string=update_time("name") #update to name the music recording to the present time
         
         folder_path = check_folders(update_time("date")) #compare the existing folders for the present date
+        print("Folder path: " + folder_path)
         
         try:
             stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
@@ -255,6 +255,7 @@ if __name__ == "__main__":
             return False
         
         wav_output_filename = folder_path + time_string + ".wav"  # name of .wav file
+        print("File path: " + time_string)
         
         frames = []
 
@@ -296,7 +297,7 @@ if __name__ == "__main__":
     try:
         if sys.argv[1] == "run":
             print("\nAuto running script \n")
-            record()
+            main()
     except IndexError:
         print("\nManual running \n")
             
