@@ -66,5 +66,5 @@ user=pi
 
 os.system("sudo chmod +x {}".format(startupSh))
 os.system("sudo chmod +x {}".format(streampathSh))
-os.system("sudo sh {}".format(startupSh))
-os.system("sudo sh {}".format(streampathSh))
+os.system("sudo {}".format(startupSh))
+os.system("sudo {}".format(streampathSh))
