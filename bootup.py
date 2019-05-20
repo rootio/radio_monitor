@@ -1,5 +1,4 @@
 import os
-from crontab import CronTab
 from pathlib import Path
 
 #Paths used:

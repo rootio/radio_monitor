@@ -5,6 +5,7 @@ import os
 import calendar
 import shutil
 import sys
+import socket
 from cmd import Cmd
 from pydub import AudioSegment
 from pathlib import Path
@@ -25,7 +26,8 @@ if __name__ == "__main__":
     data_file = "config.ini"
     data_title = "options"
     data_names = ("recording seconds","device id","file format")
-    
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    socket_run = False
     
     if (timerequest.is_connected()==False):
         for i in range(3):
@@ -110,8 +112,6 @@ if __name__ == "__main__":
         
         for i in range(3):
             
-            
-
             if i==0: #year
             
                 test_path = test_path + "/" + str(date_tuple[i])
@@ -247,26 +247,44 @@ if __name__ == "__main__":
         folder_path = check_folders(update_time("date")) #compare the existing folders for the present date
         print("Folder path: " + folder_path)
         
-        try:
-            stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
-                            input_device_index = dev_index,input = True, \
-                            frames_per_buffer=chunk)
-        except OSError:
-            return False
-        
-        wav_output_filename = folder_path + time_string + ".wav"  # name of .wav file
-        print("File path: " + time_string)
         
         frames = []
-
-        # loop through stream and append audio chunks to frame array
-        for i in range(0,int((samp_rate/chunk)*record_secs)+1):
-            data = stream.read(chunk)
-            frames.append(data)
         
+        if socket_run == False:
+            try:
+                stream = audio.open(format = form_1,rate = samp_rate,channels = chans, \
+                                input_device_index = dev_index,input = True, \
+                                frames_per_buffer=chunk)
+                
+                # loop through stream and append audio chunks to frame array
+                for i in range(0,int((samp_rate/chunk)*record_secs)+1):
+                    data = stream.read(chunk)
+                    frames.append(data)
+            
+            except OSError:
+                return False
+        else:
+            try:
+                stream = audio.open(format=form_1, channels=chans, rate=samp_rate, output=True, frames_per_buffer=chunk)
+
+                t = time.time() + record_secs
+                
+                while time.time() < t:
+                    data = s.recv(chunk)
+                    stream.write(data)
+                    frames.append(data)
+                    
+                    
+            except (OSError,KeyboardInterrupt,SystemExit):
+                    stream.close()
+                    audio.terminate()
+                    return False                
+            
+        
+        wav_output_filename = folder_path + time_string + ".wav"  # name of .wav file
+        print("File name: " + time_string)
 
         # stop the stream, close it, and terminate the pyaudio instantiation stream
-        
         stream.close()
         audio.terminate()
 
@@ -290,13 +308,22 @@ if __name__ == "__main__":
         recording=True
         
         while(recording):
-            print("Recording a new file:")
-            delete_old_folders()
-            record()
+            try:
+                print("Recording a new file:")
+                delete_old_folders()
+                record()
+            except KeyboardInterrupt:
+                pass
     
     try:
         if sys.argv[1] == "run":
             print("\nAuto running script \n")
+            main()
+        if sys.argv[1] == "srun":
+            inet = sys.argv[2]
+            port = int(sys.argv[3])
+            s.connect((inet, port))
+            socket_run = True
             main()
     except IndexError:
         print("\nManual running \n")
@@ -350,7 +377,7 @@ class MyPrompt(Cmd):
             
         elif args == "":
             save_files((record_secs, dev_index, file_format))
-            print("Preferences saved \nDuration(s):{} Channel:{} Format:{} \n".format(record_secs,dev_index,file_format))
+            print("Preferences saved \nDuration(s):{} Channel:{} Storage:{} \n".format(record_secs,dev_index,file_format))
             
         else:
             print("The option to save %s is not available \nUse [save help] to check available options \n" %args)
@@ -370,6 +397,7 @@ class MyPrompt(Cmd):
                 print("%s is not an available channel \n" %args)
             else:
                 print("No channel was selected \n")
+        
     
     def do_storage(self,args):
         help = "[0] for flat storage and [1] for a tree storage \n"
@@ -402,7 +430,7 @@ class MyPrompt(Cmd):
         print("Duration(s): {}\nChannel: {}\nStorage: {} \n".format(record_secs, dev_index, file_format))
         
         if (file_format == 0):
-            print("Flat storare selected \n")
+            print("Flat storage selected \n")
         else:
             print("Tree storage selected \n")
         
