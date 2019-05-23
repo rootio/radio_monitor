@@ -36,7 +36,7 @@ if __name__ == "__main__":
                 print("Checking internet connectivity...")
                 time.sleep(5)
             else:
-                print("Connection established \n")
+                print("Internet connection established \n")
     
     
     elif (os.path.isfile(str(Path().absolute()) + "/" + data_file)): #Load configurations saved
@@ -246,7 +246,7 @@ if __name__ == "__main__":
         
         folder_path = check_folders(update_time("date")) #compare the existing folders for the present date
         print("Folder path: " + folder_path)
-        
+    
         
         frames = []
         
@@ -265,7 +265,7 @@ if __name__ == "__main__":
                 return False
         else:
             try:
-                stream = audio.open(format=form_1, channels=chans, rate=samp_rate, output=True, frames_per_buffer=chunk)
+                stream = audio.open(format=form_1, channels=chans, rate=samp_rate, output=True, frames_per_buffer=chunk,input_device_index = dev_index)
 
                 t = time.time() + record_secs
                 
@@ -275,10 +275,11 @@ if __name__ == "__main__":
                     frames.append(data)
                     
                     
-            except (OSError,KeyboardInterrupt,SystemExit):
-                    stream.close()
-                    audio.terminate()
-                    return False                
+            except (OSError,KeyboardInterrupt,SystemExit) as f:
+                print("Exception: " + f)
+                stream.close()
+                audio.terminate()
+                return False                
             
         
         wav_output_filename = folder_path + time_string + ".wav"  # name of .wav file
@@ -313,6 +314,7 @@ if __name__ == "__main__":
                 delete_old_folders()
                 record()
             except KeyboardInterrupt:
+                recording=False
                 pass
     
     try:
@@ -322,9 +324,18 @@ if __name__ == "__main__":
         if sys.argv[1] == "srun":
             inet = sys.argv[2]
             port = int(sys.argv[3])
-            s.connect((inet, port))
-            socket_run = True
+            connection = False
+            while not connection:
+                try:
+                    print("trying")
+                    s.connect((inet, port))
+                    socket_run = True
+                    connection = True
+                    print("conected!")
+                except Exception as e:
+                    pass
             main()
+            
     except IndexError:
         print("\nManual running \n")
             

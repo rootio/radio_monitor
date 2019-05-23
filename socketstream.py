@@ -11,8 +11,9 @@ form_1 = pyaudio.paInt16
 chans = 1
 samp_rate = 44100
 chunk = 4096
+dev_index = 2
 
-p = pyaudio.PyAudio()
+
 for i in range(p.get_device_count()):
     try:
         if (p.get_device_info_by_host_api_device_index(0,i).get("maxInputChannels") > 0):
@@ -26,10 +27,11 @@ for i in range(p.get_device_count()):
     except Exception:
         print("\n Exception in channel")
         pass
-    
+
+
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-serversocket.bind(('', 4444))
+serversocket.bind(('', 4445))
 serversocket.listen(5)
 
 
@@ -40,8 +42,10 @@ def callback(in_data, frame_count, time_info, status):
 
 
 # start Recording
-stream = p.open(format=form_1, channels=chans, rate=samp_rate, input=True,input_device_index = dev_index, frames_per_buffer=chunk, stream_callback=callback)
-
+try:
+    stream = p.open(format=form_1, channels=chans, rate=samp_rate, input=True,input_device_index = dev_index, frames_per_buffer=chunk, stream_callback=callback)
+except Exception as f:
+    print(f)
 
 read_list = [serversocket]
 print ("Socket created")
@@ -56,8 +60,10 @@ try:
                 print ("Connection from", address)
             else:
                 data = s.recv(1024)
-                if not data:
-                    read_list.remove(s)
+                if data == '':
+                    data = silence = chr(0)*self.chunk*self.channels*2
+                                
+                stream.write(data) 
             
 except (OSError,KeyboardInterrupt,SystemExit):
     print ("\nEnded socket")
@@ -65,4 +71,4 @@ except (OSError,KeyboardInterrupt,SystemExit):
     stream.stop_stream()
     stream.close()
     p.terminate()
-    pass
+    

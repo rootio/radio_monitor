@@ -27,6 +27,7 @@ streampathHook = "/etc/supervisor/conf.d/streamhook.conf" #Stream Hook path
 print("Installing requirements ... \n\n")
 os.system("sudo apt-get install python3-pyaudio python3-crontab screen")
 os.system("sudo apt-get install git-core vim lame madplay ezstream supervisor")
+os.system("sudo apt-get install sshpass")
 os.system("sudo pip3 install pydub")
 os.system("sudo pip3 install -r {}".format(reqpath))
     
@@ -67,3 +68,5 @@ os.system("sudo chmod +x {}".format(startupSh))
 os.system("sudo chmod +x {}".format(streampathSh))
 os.system("sudo {}".format(startupSh))
 os.system("sudo {}".format(streampathSh))
+os.system("sudo chmod +x sshserver.sh")
+
