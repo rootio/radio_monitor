@@ -1,6 +1,6 @@
 croniter==0.3.12
 cronos==0.0.4
-numpy==1.16.1
+numpy==1.22.0
 oauthlib==2.0.1
 pathlib==1.0.1
 pyasn1==0.1.9
